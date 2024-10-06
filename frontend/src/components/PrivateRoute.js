@@ -1,24 +1,36 @@
 // frontend/src/components/PrivateRoute.js
+
 import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { Route, Redirect } from 'react-router-dom';
+import PropTypes from 'prop-types';
+import { useAuth } from '../context/AuthContext';  // Assuming you have an AuthContext
 
-const PrivateRoute = ({ children, userType }) => {
-    const { user, loading } = useAuth();
+/**
+ * PrivateRoute is a wrapper for <Route> that redirects to the login page
+ * if the user is not authenticated.
+ * 
+ * @param {React.Component} component - The component to render for this route.
+ * @param {...rest} rest - The rest of the props to pass down to <Route>.
+ */
+const PrivateRoute = ({ component: Component, ...rest }) => {
+    const { isAuthenticated } = useAuth();  // Hook that checks if the user is authenticated
 
-    if (loading) {
-        return <p>Loading...</p>;
-    }
+    return (
+        <Route
+            {...rest}
+            render={props =>
+                isAuthenticated ? (
+                    <Component {...props} />
+                ) : (
+                    <Redirect to="/login" />
+                )
+            }
+        />
+    );
+};
 
-    if (!user) {
-        return <Navigate to="/login" replace />;
-    }
-
-    if (userType && user.type !== userType) {
-        return <Navigate to="/" replace />;
-    }
-
-    return children;
+PrivateRoute.propTypes = {
+    component: PropTypes.elementType.isRequired,
 };
 
 export default PrivateRoute;

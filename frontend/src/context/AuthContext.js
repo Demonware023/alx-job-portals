@@ -1,60 +1,107 @@
 // frontend/src/context/AuthContext.js
+
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import axios from 'axios';
+import { useHistory } from 'react-router-dom';
 
-// Create the context
+// Create the Auth context
 const AuthContext = createContext();
 
-// Create a provider component
-export const AuthProvider = ({ children }) => {
-    const [authToken, setAuthToken] = useState(() => localStorage.getItem('token'));
+// Custom hook to use the Auth context
+export const useAuth = () => {
+    return useContext(AuthContext);
+};
+
+const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const history = useHistory();
 
-    // Function to log in
-    const login = (token) => {
-        localStorage.setItem('token', token);
-        setAuthToken(token);
+    // Function to check if the user is authenticated
+    const isAuthenticated = () => {
+        const token = localStorage.getItem('token');
+        return token ? true : false;
     };
 
-    // Function to log out
+    // Login function
+    const login = async (email, password) => {
+        try {
+            const res = await axios.post('/api/auth/login', { email, password });
+            const { token, user } = res.data;
+
+            // Save the token to localStorage
+            localStorage.setItem('token', token);
+            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+            setUser(user);
+            history.push('/dashboard'); // Redirect after login
+        } catch (error) {
+            console.error('Login failed:', error.response.data);
+        }
+    };
+
+    // Register function
+    const register = async (name, email, password) => {
+        try {
+            const res = await axios.post('/api/auth/register', { name, email, password });
+            const { token, user } = res.data;
+
+            // Save the token to localStorage
+            localStorage.setItem('token', token);
+            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+            setUser(user);
+            history.push('/dashboard'); // Redirect after registration
+        } catch (error) {
+            console.error('Registration failed:', error.response.data);
+        }
+    };
+
+    // Logout function
     const logout = () => {
         localStorage.removeItem('token');
-        setAuthToken(null);
+        delete axios.defaults.headers.common['Authorization'];
         setUser(null);
+        history.push('/login'); // Redirect to login after logout
     };
 
-    // Fetch the authenticated user's data
+    // Fetch current user information
     const fetchUser = async () => {
-        if (authToken) {
-            try {
-                const res = await axios.get('http://localhost:5000/api/auth/me', {
-                    headers: {
-                        Authorization: `Bearer ${authToken}`,
-                    },
-                });
+        try {
+            const token = localStorage.getItem('token');
+            if (token) {
+                axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+                const res = await axios.get('/api/auth/me');
                 setUser(res.data);
-            } catch (err) {
-                console.error(err);
-                logout();
             }
+        } catch (error) {
+            console.error('Error fetching user data:', error.response.data);
+            logout(); // In case of error, log the user out
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
+    // Check if user is logged in and fetch user data on app load
     useEffect(() => {
         fetchUser();
-        // eslint-disable-next-line
-    }, [authToken]);
+    }, []);
+
+    // Context value
+    const value = {
+        user,
+        loading,
+        isAuthenticated,
+        login,
+        register,
+        logout
+    };
 
     return (
-        <AuthContext.Provider value={{ authToken, user, login, logout, loading }}>
-            {children}
+        <AuthContext.Provider value={value}>
+            {!loading && children} {/* Ensure content is rendered only when not loading */}
         </AuthContext.Provider>
     );
 };
 
-// Custom hook to use the AuthContext
-export const useAuth = () => {
-    return useContext(AuthContext);
-};
+export default AuthProvider;

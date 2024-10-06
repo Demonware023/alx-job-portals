@@ -1,44 +1,42 @@
 // backend/server.js
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const dotenv = require('dotenv');
-const connectDB = require('./config/db');
-const errorHandler = require('./middleware/error');
+import express from 'express';
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import authRoutes from './routes/authRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import jobRoutes from './routes/jobRoutes.js';
+import companyRoutes from './routes/companyRoutes.js';
+import errorHandler from './middleware/error.js';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Connect to the database
-connectDB();
-
-// Use the error handler
-app.use(errorHandler);
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 })
-.then(() => console.log('MongoDB connected'))
-.catch(err => console.log(err));
+.then(() => console.log('MongoDB connected...'))
+.catch(err => console.error('MongoDB connection error:', err));
+
+// Middleware
+app.use(cors());
+app.use(express.json()); // Parse JSON bodies
+app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 
 // Routes
-app.get('/', (req, res) => {
-    res.send('API is running...');
-});
+app.use('/api/auth', authRoutes); // Authentication routes
+app.use('/api/users', userRoutes); // User routes
+app.use('/api/jobs', jobRoutes); // Job routes
+app.use('/api/companies', companyRoutes); // Company routes
 
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/companies', require('./routes/companies'));
-app.use('/api/users', require('./routes/users'));
-app.use('/api/jobs', require('./routes/jobs')); // Ensure jobs.js routes are implemented
+// Error handling middleware
+app.use(errorHandler);
 
+// Start the server
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on http://localhost:${PORT}`);
 });

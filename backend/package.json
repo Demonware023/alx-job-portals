@@ -8,7 +8,7 @@
     "check-lint": "eslint 'src/**/*.{js,jsx}'",
     "start": "nodemon --exec babel-node --presets @babel/preset-env ./server.js",
     "dev": "nodemon --exec babel-node --presets @babel/preset-env",
-    "test": "mocha --require @babel/register --exit",
+    "test": "mocha --require @babel/register backend/tests/**/*.test.js --exit",
     "test:watch": "mocha --require @babel/register --exit --watch"
   },
   "author": "Chimere Awam",
