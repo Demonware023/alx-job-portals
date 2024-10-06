@@ -1,11 +1,41 @@
 // backend/models/Company.js
+
 const mongoose = require('mongoose');
 
-const CompanySchema = new mongoose.Schema({
-    companyName: { type: String, required: true, unique: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    postedJobs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Job' }],
-});
+// Create a schema for Company
+const companySchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true,
+        unique: true,
+        trim: true,
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+        lowercase: true,
+        trim: true,
+    },
+    password: {
+        type: String,
+        required: true,
+    },
+    website: {
+        type: String,
+        trim: true,
+    },
+    location: {
+        type: String,
+        trim: true,
+    },
+    postedJobs: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Job',
+    }],
+}, { timestamps: true });
 
-module.exports = mongoose.model('Company', CompanySchema);
+// Create a model for Company
+const Company = mongoose.model('Company', companySchema);
+
+module.exports = Company;
