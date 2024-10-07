@@ -7,7 +7,7 @@ const {
     loginUser,
     registerCompany,
     loginCompany,
-} = require('../controllers/AuthController');
+} = require('../controllers/authController');
 
 // User registration route
 router.post('/register/user', registerUser);

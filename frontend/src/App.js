@@ -14,6 +14,14 @@ import Applications from './pages/Applications';
 import RecommendedJobs from './components/RecommendedJobs';
 import PrivateRoute from './components/PrivateRoute'; // To protect routes
 import JobDetails from './pages/JobDetails';
+import AuthProvider from './context/AuthContext';
+import JobProvider from './context/JobContext';
+import CompanyProvider from './context/CompanyContext';
+import ApplicationProvider from './context/ApplicationContext';
+import Navbar from './components/Navbar';
+import Register from './components/Register';
+import Login from './components/Login';
+import Dashboard from './components/Dashboard';
 
 const App = () => {
     return (
@@ -24,6 +32,7 @@ const App = () => {
                     <Route path="/" element={<Home />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
+                    <Route path="/dashboard" component={Dashboard} />
                     
                     {/* Protected Routes for Users */}
                     <Route
